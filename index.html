@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ううちゃんのカラーおみくじ</title>
+  <style>
+    :root {
+      --primary-color: #ff85a2;
+      --bg-color: #fff9fb;
+      --text-color: #333333;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: #ffffff;
+      padding: 30px 25px;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(255, 133, 162, 0.15);
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      border: 3px solid #ffe3ec;
+    }
+
+    h1 {
+      font-size: 1.85rem;
+      color: #d6336c;
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    p.subtitle {
+      color: #666;
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .limit-badge {
+      display: inline-block;
+      background-color: #fff0f6;
+      color: #d6336c;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      margin-bottom: 25px;
+      border: 1px solid #ffdeeb;
+    }
+
+    .color-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 25px;
+    }
+
+    .btn {
+      border: none;
+      padding: 16px 12px;
+      border-radius: 16px;
+      color: white;
+      font-weight: bold;
+      font-size: 1.15rem;
+      cursor: pointer;
+      transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-3px);
+      opacity: 0.95;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+      filter: grayscale(40%);
+    }
+
+    /* カラーボタンの色設定 */
+    .btn-red    { background-color: #ff5e57; }
+    .btn-blue   { background-color: #4bc0c0; }
+    .btn-yellow { background-color: #ffcd56; }
+    .btn-green  { background-color: #58d68d; }
+    .btn-pink   { background-color: #ff85a2; }
+    .btn-purple { background-color: #a55eea; }
+
+    /* ううちゃんエリア */
+    .uu-stage {
+      margin-top: 10px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .uu-container {
+      width: 140px;
+      height: 140px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .uu-container.jump {
+      animation: uuJump 0.8s ease-out;
+    }
+
+    @keyframes uuJump {
+      0%   { transform: translateY(100px) scale(0.7); opacity: 0; }
+      50%  { transform: translateY(-20px) scale(1.1); opacity: 1; }
+      70%  { transform: translateY(5px) scale(0.95); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .uu-container.poyon {
+      animation: uuPoyon 0.4s ease;
+    }
+
+    @keyframes uuPoyon {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.15, 0.85); }
+      70%  { transform: scale(0.9, 1.1); }
+      100% { transform: scale(1); }
+    }
+
+    /* 吹き出し */
+    .speech-bubble {
+      position: relative;
+      background: #ffffff;
+      border: 3px solid #ff85a2;
+      border-radius: 20px;
+      padding: 20px;
+      text-align: left;
+      width: 100%;
+      box-sizing: border-box;
+      box-shadow: 0 6px 15px rgba(255, 133, 162, 0.1);
+    }
+
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 0 12px 15px 12px;
+      border-style: solid;
+      border-color: transparent transparent #ff85a2 transparent;
+    }
+
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 0 10px 12px 10px;
+      border-style: solid;
+      border-color: transparent transparent #ffffff transparent;
+    }
+
+    .result-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .result-fortune {
+      font-size: 1.7rem;
+      font-weight: bold;
+      color: #2d3436;
+      margin-bottom: 12px;
+    }
+
+    .result-section {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 2px dashed #ffe3ec;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: #d6336c;
+      margin-bottom: 6px;
+    }
+
+    .result-text {
+      color: #333;
+      line-height: 1.65;
+      font-size: 1.1rem;
+    }
+
+    .notice-msg {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #fff0f6;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      color: #d6336c;
+      font-weight: bold;
+      border: 1px solid #ffdeeb;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>🐰 ううちゃんのカラーおみくじ</h1>
+    <p class="subtitle">直感で気になる色を選んでね！<br>ううちゃんが運勢を教えてくれるよ♪</p>
+    
+    <div id="limit-count" class="limit-badge">本日 あと 3 回 引けます</div>
+
+    <div class="color-buttons">
+      <button class="btn btn-red" onclick="showFortune('red')">赤色 (Red)</button>
+      <button class="btn btn-blue" onclick="showFortune('blue')">青色 (Blue)</button>
+      <button class="btn btn-yellow" onclick="showFortune('yellow')">黄色 (Yellow)</button>
+      <button class="btn btn-green" onclick="showFortune('green')">緑色 (Green)</button>
+      <button class="btn btn-pink" onclick="showFortune('pink')">ピンク (Pink)</button>
+      <button class="btn btn-purple" onclick="showFortune('purple')">紫色 (Purple)</button>
+    </div>
+
+    <div id="notice" class="notice-msg" style="display: none;">
+      ⚠️ 本日の占いは終了しました！<br>また明日挑戦してね🐰✨
+    </div>
+
+    <div id="uu-stage" class="uu-stage">
+      <!-- ううちゃんのSVGイラスト -->
+      <div id="uu-character" class="uu-container" onclick="playPoyon()">
+        <svg viewBox="0 0 200 200" width="100%" height="100%">
+          <!-- 耳（左） -->
+          <ellipse cx="75" cy="45" rx="18" ry="38" fill="#B8977E" transform="rotate(-10 75 45)" />
+          <ellipse cx="75" cy="45" rx="10" ry="26" fill="#D6C0B0" transform="rotate(-10 75 45)" />
+          <!-- 耳（右） -->
+          <ellipse cx="125" cy="45" rx="18" ry="38" fill="#B8977E" transform="rotate(10 125 45)" />
+          <ellipse cx="125" cy="45" rx="10" ry="26" fill="#D6C0B0" transform="rotate(10 125 45)" />
+          <!-- 顔の輪郭 -->
+          <ellipse cx="100" cy="110" rx="55" ry="48" fill="#B8977E" />
+          <!-- 口元の白い毛並み -->
+          <ellipse cx="100" cy="122" rx="28" ry="20" fill="#F5EBE6" />
+          <!-- 目（左） -->
+          <circle cx="72" cy="105" r="7" fill="#2C1D11" />
+          <circle cx="70" cy="103" r="2.5" fill="#FFFFFF" />
+          <!-- 目（右） -->
+          <circle cx="128" cy="105" r="7" fill="#2C1D11" />
+          <circle cx="126" cy="103" r="2.5" fill="#FFFFFF" />
+          <!-- 鼻 -->
+          <polygon points="100,113 95,108 105,108" fill="#5C3A21" />
+          <!-- 口 -->
+          <path d="M 95 118 Q 100 122 105 118" stroke="#5C3A21" stroke-width="2" fill="none" stroke-linecap="round" />
+          <!-- ピンクのマフラー -->
+          <path d="M 52 142 Q 100 162 148 142 Q 152 155 140 162 Q 100 178 60 162 Q 48 155 52 142 Z" fill="#FFB7C5" />
+          <!-- マフラーの模様 -->
+          <path d="M 65 150 Q 100 166 135 150" stroke="#FF85A2" stroke-width="2" fill="none" stroke-dasharray="4,4" />
+        </svg>
+      </div>
+
+      <!-- 吹き出し結果 -->
+      <div class="speech-bubble">
+        <div id="result-badge" class="result-badge"></div>
+        <div id="result-fortune" class="result-fortune"></div>
+        
+        <div class="result-section">
+          <div class="section-title">💬 ううちゃんからのメッセージ</div>
+          <div id="result-text" class="result-text"></div>
+        </div>
+
+        <div class="result-section">
+          <div class="section-title">🎁 ラッキーアイテム＆アクション</div>
+          <div id="result-item" class="result-text"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MAX_DAILY_COUNT = 3; // 1日3回まで
+    const fortuneList = ["🌟 超大吉", "✨ 大吉", "🎵 中吉", "🍀 小吉", "🌿 吉"];
+
+    const colorData = {
+      red: { name: "🔥 エネルギッシュなレッド", colorCode: "#ff5e57", messages: ["情熱とやる気が満ちあふれる最高の1日！迷っていたことに思い切って飛び込むと素晴らしい成果が得られます。"], items: ["☕ 挽きたての温かいコーヒー＆「10分早めの行動」"] },
+      blue: { name: "🌊 涼やかなブルー", colorCode: "#4bc0c0", messages: ["頭が冴え渡り、冷静な判断ができる安定した1日。落ち着いて作業や学習に取り組むと大きな成果が出ます。"], items: ["🎧 お気に入りのテンポの良い音楽＆「デスク周りの整理整頓」"] },
+      yellow: { name: "✨ ポップなイエロー", colorCode: "#ffcd56", messages: ["素晴らしいアイデアやひらめきが次々と湧き出る楽しい1日！遊び心を持って過ごすのが鍵です。"], items: ["🍋 柑橘系のスイーツやジュース＆「感動したことをメモに残す」"] },
+      green: { name: "🌿 癒やしのグリーン", colorCode: "#58d68d", messages: ["心身ともにリラックスでき、心地よいリズムで過ごせる癒やしの1日。マイペースを保つのが一番です。"], items: ["🪴 部屋に飾る生花や緑の植物＆「公園などの緑豊かな場所を散歩」"] },
+      pink: { name: "🌸 愛されピンク", colorCode: "#ff85a2", messages: ["あなたの魅力を周囲が放っておかない愛され度100%の1日！自分をたくさん褒めて甘やかしてあげましょう。"], items: ["🍓 いちごフレーバーのおやつ＆「お気に入りの服を身に着ける」"] },
+      purple: { name: "🔮 神秘的なパープル", colorCode: "#a55eea", messages: ["直感力とセンスが抜群に冴える神秘的な1日。自分の『なんとなくこう思う』という感覚を一番に信じてみて。"], items: ["📖 読みたかった本や写真集＆「アロマの香りでリフレッシュ」"] }
+    };
+
+    function getTodayString() {
+      const today = new Date();
+      return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+    }
+
+    function getTodayCount() {
+      const lastDate = localStorage.getItem('uu_fortune_date');
+      const todayStr = getTodayString();
+      if (lastDate !== todayStr) {
+        localStorage.setItem('uu_fortune_date', todayStr);
+        localStorage.setItem('uu_fortune_count', '0');
+        return 0;
+      }
+      return parseInt(localStorage.getItem('uu_fortune_count') || '0', 10);
+    }
+
+    function updateCounterDisplay(count) {
+      const remaining = MAX_DAILY_COUNT - count;
+      const countEl = document.getElementById('limit-count');
+      if (remaining > 0) {
+        countEl.innerText = `本日 あと ${remaining} 回 引けます`;
+      } else {
+        countEl.innerText = `本日の回数上限（3回）に達しました`;
+        countEl.style.backgroundColor = '#f1f3f5';
+        countEl.style.color = '#868e96';
+        countEl.style.borderColor = '#dee2e6';
+      }
+    }
+
+    window.onload = function() {
+      const count = getTodayCount();
+      updateCounterDisplay(count);
+
+      if (count >= MAX_DAILY_COUNT) {
+        disableButtons();
+        document.getElementById('notice').style.display = 'block';
+      }
+    };
+
+    function showFortune(colorKey) {
+      let count = getTodayCount();
+      if (count >= MAX_DAILY_COUNT) return;
+
+      count++;
+      localStorage.setItem('uu_fortune_count', count.toString());
+      updateCounterDisplay(count);
+
+      const data = colorData[colorKey];
+      const randomFortune = fortuneList[Math.floor(Math.random() * fortuneList.length)];
+      const randomMessage = data.messages[Math.floor(Math.random() * data.messages.length)];
+      const randomItem = data.items[Math.floor(Math.random() * data.items.length)];
+
+      displayResult(colorKey, randomFortune, randomMessage, randomItem);
+
+      if (count >= MAX_DAILY_COUNT) {
+        disableButtons();
+        document.getElementById('notice').style.display = 'block';
+      }
+    }
+
+    function displayResult(colorKey, fortune, msg, item) {
+      const data = colorData[colorKey];
+      const stage = document.getElementById('uu-stage');
+      const character = document.getElementById('uu-character');
+      const badge = document.getElementById('result-badge');
+      const fortuneEl = document.getElementById('result-fortune');
+      const textEl = document.getElementById('result-text');
+      const itemEl = document.getElementById('result-item');
+
+      badge.innerText = data.name;
+      badge.style.backgroundColor = data.colorCode;
+      
+      fortuneEl.innerText = fortune;
+      textEl.innerText = msg;
+      itemEl.innerText = item;
+
+      stage.style.display = 'flex';
+
+      character.classList.remove('jump', 'poyon');
+      void character.offsetWidth; // リフローを強制してアニメーションをリセット
+      character.classList.add('jump');
+
+      stage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function playPoyon() {
+      const character = document.getElementById('uu-character');
+      character.classList.remove('jump', 'poyon');
+      void character.offsetWidth;
+      character.classList.add('poyon');
+    }
+
+    function disableButtons() {
+      const buttons = document.querySelectorAll('.btn');
+      buttons.forEach(button => {
+        button.disabled = true;
+      });
+    }
+  </script>
+
+</body>
+</html>
